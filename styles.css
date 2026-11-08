@@ -1,0 +1,132 @@
+/* Global styles for ATTIJARI BANK Fleet & Mission Management (Angular) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --attijari-primary: #003366;
+  --attijari-secondary: #c8102e;
+  --attijari-accent: #f5a623;
+  --bg: #f4f6f9;
+  --card-bg: #ffffff;
+  --success: #27ae60;
+  --danger: #e74c3c;
+  --warning: #f39c12;
+  --text-primary: #2c3e50;
+  --text-secondary: #7f8c8d;
+  --border-radius-card: 12px;
+  --border-radius-btn: 8px;
+  --border-radius-input: 6px;
+  --shadow: 0 2px 12px rgba(0, 51, 102, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: var(--bg);
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  color: var(--text-primary);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+.container-fluid {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid rgba(44, 62, 80, 0.08);
+  border-radius: var(--border-radius-card);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+}
+
+.badge-pill {
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+}
+
+.btn-primary {
+  background-color: var(--attijari-primary);
+  color: #fff;
+  border: 1px solid var(--attijari-primary);
+  border-radius: var(--border-radius-btn);
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: var(--attijari-secondary);
+  color: #fff;
+  border: 1px solid var(--attijari-secondary);
+}
+
+.input-field {
+  background: #fff;
+  border: 1px solid #d7dde7;
+  border-radius: var(--border-radius-input);
+  padding: 0.75rem 0.85rem;
+  width: 100%;
+  color: var(--text-primary);
+}
+
+.input-field:focus {
+  outline: 0;
+  border-color: var(--attijari-primary);
+  box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.15);
+}
+
+.text-muted {
+  color: var(--text-secondary);
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.table thead {
+  background: #f8fafc;
+}
+
+.table tr:hover {
+  background: #f0f4fb;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-en_attente { background: #f39c12; color: #fff; }
+.status-approuvee { background: #3498db; color: #fff; }
+.status-terminee { background: #27ae60; color: #fff; }
+.status-refusee { background: #e74c3c; color: #fff; }
+.status-refusee { background: #e74c3c; color: #fff; }
+
+@media (max-width: 992px) {
+  .container-fluid { padding-left: 0.75rem; padding-right: 0.75rem; }
+}
