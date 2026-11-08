@@ -1,0 +1,96 @@
+<!-- Collapsible Attijari Bank Sidebar -->
+<aside
+  class="sidebar"
+  [class.expanded]="isOpen"
+  (mouseenter)="onMouseEnter()"
+  (mouseleave)="onMouseLeave()">
+
+  <!-- Toggle Button (Hamburger) -->
+  <div class="sidebar-header">
+    <button
+      class="toggle-btn"
+      (click)="toggleSidebar()"
+      [attr.aria-label]="isExpanded ? 'Collapse sidebar' : 'Expand sidebar'"
+      [attr.aria-expanded]="isExpanded">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Logo (only visible when expanded) -->
+    @if (isOpen) {
+      <div class="logo">
+        <div class="logo-icon">
+          <i class="fas fa-building-columns"></i>
+        </div>
+        <div class="logo-text">
+          <span class="logo-subtitle">ATTIJARI</span>
+          <span class="logo-title">BANK</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Navigation Menu -->
+  <nav class="sidebar-nav">
+    <ul class="nav-list">
+      @for (item of role === 'responsable' ? responsableSidebar() : employeeSidebar(); track item.label) {
+        <li class="nav-item">
+          <a
+            [routerLink]="item.children?.length ? null : item.route"
+            [fragment]="item.children?.length ? undefined : item.fragment"
+            class="nav-link"
+            [class.active]="isNavItemActive(item)"
+            [class.has-children]="item.children?.length"
+            (click)="onItemClick($event, item)"
+            [attr.data-tooltip]="!isOpen ? item.label : null">
+            <i [class]="item.icon + ' nav-icon'"></i>
+            @if (isOpen) {
+              <span class="nav-label">{{ item.label }}</span>
+            }
+            @if (item.badge && isOpen) {
+              <span class="nav-badge">{{ item.badge }}</span>
+            }
+            @if (item.badge && !isOpen) {
+              <span class="nav-badge-dot"></span>
+            }
+            @if (item.children?.length && isOpen) {
+              <i class="fas fa-chevron-down submenu-icon" [class.rotated]="isSubmenuExpanded(item.label)"></i>
+            }
+          </a>
+
+          <!-- Sub-menu Items -->
+          @if (item.children?.length && isOpen && isSubmenuExpanded(item.label)) {
+            <ul class="submenu">
+              @for (child of item.children; track child.label) {
+                <li class="submenu-item">
+                  <a
+                    [routerLink]="child.route"
+                    [fragment]="child.fragment"
+                    class="submenu-link"
+                    [class.active]="isNavItemActive(child)"
+                    (click)="onLeafItemClick($event, child)">
+                    <i [class]="child.icon + ' submenu-icon-item'"></i>
+                    <span class="submenu-label">{{ child.label }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        </li>
+      }
+    </ul>
+  </nav>
+
+  <!-- Logout Button -->
+  <div class="sidebar-footer">
+    <button
+      class="logout-btn"
+      (click)="logout()"
+      [attr.data-tooltip]="!isOpen ? 'Logout' : null">
+      <i class="fas fa-right-from-bracket"></i>
+      @if (isOpen) {
+        <span>Logout</span>
+      }
+    </button>
+  </div>
+
+</aside>

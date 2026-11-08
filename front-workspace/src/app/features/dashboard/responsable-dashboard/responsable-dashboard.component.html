@@ -1,0 +1,367 @@
+<div class="space-y-6" id="dashboard-top">
+  <section class="bg-gradient-to-r from-attijari-dark to-attijari-red text-white rounded-xl p-6 shadow-lg">
+    <div class="flex items-center justify-between gap-4">
+      <div>
+        <p class="text-sm uppercase tracking-[0.25em] opacity-80">Responsable Logistique</p>
+        <h1 class="text-3xl font-bold mt-1">Service Logistique et Véhicules</h1>
+        <p class="mt-2 opacity-90">Gestion des missions, parc véhicules et accès parking.</p>
+      </div>
+      <i class="fas fa-tower-control text-5xl opacity-25"></i>
+    </div>
+  </section>
+
+  @if (flashMessage) {
+    <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-900">
+      {{ flashMessage }}
+    </div>
+  }
+
+  <section class="bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden" id="mission-validation">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h2 class="text-xl font-bold text-attijari-dark">Processus de validation:</h2>
+      <p class="text-sm text-gray-500 mt-1">Demande employé → Validation responsable → Affectation véhicule → Badge parking QR</p>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Mission</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Employé</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Dates</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Véhicule demandé</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Affectation</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          @for (mission of pendingMissions(); track mission.id) {
+            <tr>
+              <td class="px-5 py-4 text-sm font-semibold text-attijari-dark">{{ mission.id }}</td>
+              <td class="px-5 py-4 text-sm text-gray-700">{{ mission.employee.name }}</td>
+              <td class="px-5 py-4 text-sm text-gray-700">{{ formatDate(mission.startDate) }} au {{ formatDate(mission.endDate) }}</td>
+              <td class="px-5 py-4 text-sm text-gray-700">
+                @if (mission.needsVehicle) {
+                  Oui
+                } @else {
+                  Non
+                }
+              </td>
+              <td class="px-5 py-4 text-sm">
+                @if (mission.needsVehicle) {
+                  <div class="flex flex-col gap-2">
+                    <select
+                      class="w-full max-w-xs rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-attijari-dark"
+                      [ngModel]="selectedVehicleByMission[mission.id] || null"
+                      (ngModelChange)="selectedVehicleByMission[mission.id] = $event">
+                      <option [ngValue]="null">Choisir un véhicule</option>
+                      @for (vehicle of availableVehiclesForMission(); track vehicle.id) {
+                        <option [ngValue]="vehicle.id">{{ vehicle.model }} ({{ vehicle.plateNumber }})</option>
+                      }
+                    </select>
+
+                    @if (availableVehiclesForMission().length === 0) {
+                      <p class="text-[11px] text-red-600">Aucun véhicule disponible actuellement.</p>
+                    }
+                    @if (!selectedVehicleByMission[mission.id]) {
+                      <p class="text-[11px] text-orange-500">Sélection obligatoire avant validation.</p>
+                    }
+                  </div>
+                } @else {
+                  <span class="text-xs text-gray-500">Aucune affectation requise</span>
+                }
+              </td>
+              <td class="px-5 py-4 text-sm">
+                <div class="flex items-center gap-2 whitespace-nowrap">
+                  <button
+                    type="button"
+                    (click)="approveMission(mission.id, mission.needsVehicle)"
+                    [disabled]="!canApproveMission(mission)"
+                    [attr.aria-label]="mission.needsVehicle ? 'Valider et affecter' : 'Valider la mission'"
+                    [attr.title]="mission.needsVehicle ? 'Valider et affecter' : 'Valider la mission'"
+                    class="inline-flex items-center gap-1 rounded px-2 py-1 bg-green-600 text-white text-xs font-semibold hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-green-600">
+                    <img src="assets/branding/check.svg" alt="Valider" class="action-icon" />
+                    <span>{{ mission.needsVehicle ? 'Valider + Affecter' : 'Valider' }}</span>
+                  </button>
+                  <button
+                    type="button"
+                    (click)="rejectMission(mission.id)"
+                    aria-label="Refuser la mission"
+                    title="Refuser la mission"
+                    class="inline-flex items-center gap-1 rounded px-2 py-1 bg-red-600 text-white text-xs font-semibold hover:bg-red-700">
+                    <img src="assets/branding/x.svg" alt="Refuser" class="action-icon" />
+                    <span>Refuser</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+          @if (pendingMissions().length === 0) {
+            <tr>
+              <td colspan="6" class="px-5 py-8 text-center text-sm text-gray-500">Aucune demande en attente.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden" id="mission-history">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h2 class="text-xl font-bold text-attijari-dark">Historique des missions</h2>
+      <p class="text-xs text-gray-500 mt-1">Statuts&nbsp;: <strong>ECHOUEE</strong> — mission marquée comme échouée par l'employé; <strong>REFUSEE</strong> — demande refusée par le responsable.</p>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Mission</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Employe</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Destination</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Statut</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Vehicule</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          @for (mission of missions; track mission.id) {
+            <tr>
+              <td class="px-5 py-4 text-sm font-semibold text-attijari-dark">{{ mission.id }}</td>
+              <td class="px-5 py-4 text-sm text-gray-700">{{ mission.employee.name }}</td>
+              <td class="px-5 py-4 text-sm text-gray-700">{{ mission.destination }}</td>
+              <td class="px-5 py-4 text-sm">
+                <span class="px-3 py-1 rounded-full text-xs font-semibold" [class]="statusChip(mission.status)">{{ mission.status }}</span>
+              </td>
+              <td class="px-5 py-4 text-sm text-gray-700">{{ mission.assignedVehiclePlate || '-' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <article class="bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden" id="vehicle-fleet">
+      <div class="px-6 py-4 border-b border-gray-100">
+        <h2 class="text-xl font-bold text-attijari-dark">Gestion du parc vehicules</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Vehicule</th>
+              <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>
+              <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Statut</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            @for (vehicle of vehicles; track vehicle.id) {
+              <tr>
+                <td class="px-5 py-4 text-sm font-semibold text-attijari-dark">{{ vehicle.model }} ({{ vehicle.plateNumber }})</td>
+                <td class="px-5 py-4 text-sm text-gray-700">{{ vehicle.type }}</td>
+                <td class="px-5 py-4 text-sm">
+                  <div class="flex flex-col items-start gap-2 max-w-60">
+                    <button
+                      type="button"
+                      class="px-3 py-1 rounded-full text-xs font-semibold hover:opacity-90"
+                      [class]="statusChip(vehicle.status)"
+                      (click)="cycleVehicleStatus(vehicle)"
+                      title="Cliquer pour changer le statut">
+                      {{ vehicleStatusLabel(vehicle.status) }}
+                    </button>
+                    
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden" id="users-management">
+      <div class="px-6 py-4 border-b border-gray-100">
+        <h2 class="text-xl font-bold text-attijari-dark">Gestion des utilisateurs</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Utilisateur</th>
+              <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Role</th>
+              <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Statut</th>
+              <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            @for (user of users; track user.id + '-' + user.email + '-' + $index) {
+              <tr>
+                <td class="px-5 py-4 text-sm">
+                  <p class="font-semibold text-attijari-dark">{{ user.name || 'Compte sans nom' }}</p>
+                  <p class="text-xs text-gray-500">{{ user.email || 'Email manquant' }}</p>
+                </td>
+                <td class="px-5 py-4 text-sm text-gray-700 uppercase">{{ user.role }}</td>
+                <td class="px-5 py-4 text-sm">
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold" [class]="user.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'">
+                    {{ user.active ? 'ACTIF' : 'INACTIF' }}
+                  </span>
+                </td>
+                <td class="px-5 py-4 text-sm">
+                  @if (user.role === 'employee') {
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        (click)="toggleUser(user)"
+                        class="h-9 w-28 inline-flex items-center justify-center rounded-lg text-xs font-semibold transition-all duration-200"
+                        [class]="user.active ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'">
+                        {{ user.active ? 'Desactiver' : 'Activer' }}
+                      </button>
+                      <button
+                        type="button"
+                        (click)="deleteUser(user)"
+                        [disabled]="isUserDeleting(user.id)"
+                        class="group relative h-9 w-10 inline-flex items-center justify-center rounded-xl border border-rose-200/80 bg-gradient-to-br from-rose-50 to-white text-rose-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:text-rose-700 hover:shadow-md active:translate-y-0 disabled:opacity-55 disabled:cursor-not-allowed"
+                        title="Supprimer le compte">
+                        <i class="fa-solid fa-trash-can text-sm transition-transform duration-200 group-hover:scale-110"></i>
+                      </button>
+                    </div>
+                  } @else {
+                    <span class="text-xs text-gray-400">Compte principal</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+
+  <section class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <article class="bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden" id="reports">
+      <div class="px-6 py-4 border-b border-gray-100">
+        <h2 class="text-xl font-bold text-attijari-dark">Demandes de reservation vehicule</h2>
+      </div>
+      <div class="max-h-80 overflow-auto">
+        @for (reservation of reservations; track reservation.id) {
+          <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-4">
+            <div>
+              <p class="text-sm font-semibold text-attijari-dark">{{ reservation.id }} - {{ reservation.employee.name }}</p>
+              <p class="text-xs text-gray-500">{{ reservation.requestedType }} | {{ reservation.fromDate }} au {{ reservation.toDate }}</p>
+              <p class="text-xs text-gray-500 mt-1">{{ reservation.reason }}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-3 py-1 rounded-full text-xs font-semibold" [class]="statusChip(reservation.status)">{{ reservation.status }}</span>
+              @if (reservation.status === 'EN_ATTENTE') {
+                <button
+                  type="button"
+                  (click)="approveReservation(reservation.id)"
+                  aria-label="Valider la réservation"
+                  title="Valider la réservation"
+                  class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-emerald-50 hover:border-emerald-300">
+                  <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                    <i class="fas fa-circle-check text-base"></i>
+                  </span>
+                  <span>Valider</span>
+                </button>
+                <button
+                  type="button"
+                  (click)="rejectReservation(reservation.id)"
+                  aria-label="Refuser la réservation"
+                  title="Refuser la réservation"
+                  class="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-700 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-rose-50 hover:border-rose-300">
+                  <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+                    <i class="fas fa-circle-xmark text-base"></i>
+                  </span>
+                  <span>Refuser</span>
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </article>
+
+    <article class="bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100">
+        <h2 class="text-xl font-bold text-attijari-dark">Incidents signales</h2>
+      </div>
+      <div class="max-h-80 overflow-auto">
+        @for (report of reports; track report.id) {
+          <div class="px-6 py-4 border-b border-gray-100">
+            <div class="flex items-center justify-between gap-3">
+              <p class="text-sm font-semibold text-attijari-dark">{{ report.id }} - {{ report.employee.name }}</p>
+              <span class="px-3 py-1 rounded-full text-xs font-semibold" [class]="statusChip(report.status)">{{ report.status }}</span>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">{{ report.category }} | {{ report.severity }} | {{ report.createdAt }}</p>
+            <p class="text-sm text-gray-700 mt-2">{{ report.description }}</p>
+            <div class="flex gap-2 mt-3">
+              <button (click)="setProblemStatus(report.id, 'EN_COURS')" class="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs">Mettre en cours</button>
+              <button (click)="setProblemStatus(report.id, 'RESOLU')" class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">Marquer resolu</button>
+            </div>
+          </div>
+        }
+      </div>
+    </article>
+  </section>
+
+  @if (showRejectionModal) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+      <button
+        type="button"
+        class="absolute inset-0 bg-black/50"
+        aria-label="Fermer la fenetre de refus"
+        (click)="closeRejectionModal()"></button>
+
+      <dialog open class="relative w-full max-w-2xl rounded-xl border border-red-100 bg-white shadow-2xl" (click)="$event.stopPropagation()" (keydown.escape)="closeRejectionModal()">
+        <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+          <div>
+            <h3 class="text-lg font-bold text-attijari-dark">Refuser la mission</h3>
+            <p class="text-xs text-gray-500 mt-1">Saisissez une raison justificative pour le refus de cette mission.</p>
+          </div>
+          <button
+            type="button"
+            class="h-9 w-9 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+            aria-label="Close"
+            (click)="closeRejectionModal()"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="px-6 py-5">
+          <div class="space-y-4">
+            <label class="space-y-1">
+              <span class="text-sm font-semibold text-gray-700">Raison justificative <span class="text-red-600">*</span></span>
+              <textarea
+                [(ngModel)]="rejectionReason"
+                placeholder="Decrivez les raisons du refus de cette mission..."
+                rows="5"
+                class="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-attijari-dark focus:border-transparent resize-none"
+                [class.border-red-300]="showRejectionModal && !rejectionReason.trim()">
+              </textarea>
+              <p class="text-[11px] text-gray-500">{{ rejectionReason.length }}/500</p>
+            </label>
+          </div>
+
+          <div class="mt-6 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              (click)="closeRejectionModal()"
+              class="px-4 py-2 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+              Annuler
+            </button>
+            <button
+              type="button"
+              (click)="submitRejection()"
+              [disabled]="!rejectionReason.trim()"
+              class="inline-flex items-center gap-2 rounded-full bg-attijari-red px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50">
+              <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/15 text-white">
+                <i class="fas fa-circle-check text-base"></i>
+              </span>
+              <span>Confirmer le refus</span>
+            </button>
+          </div>
+        </div>
+      </dialog>
+    </div>
+  }
+</div>

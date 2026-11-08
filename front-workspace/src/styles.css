@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap');
+@import '@fortawesome/fontawesome-free/css/all.min.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ensure all Font Awesome icons display correctly globally */
+i,
+i.fas,
+i.far,
+i.fab,
+i.fa {
+  display: inline-block !important;
+  font-style: normal !important;
+  font-variant: normal !important;
+  text-rendering: auto !important;
+  line-height: 1 !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+* {
+  @apply transition-colors duration-200;
+}
+
+html, body {
+  @apply bg-attijari-bg font-sans text-gray-800;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Prevent horizontal scroll during sidebar transitions */
+}
+
+/* Global body class for sidebar state */
+body {
+  transition: none; /* Body itself doesn't transition, only children do */
+}
+
+i, i.fas, i.far, i.fab {
+  display: inline-block !important;
+  font-style: normal !important;
+  -webkit-font-smoothing: antialiased !important;
+}
+
+/* Minimal UI refinements for overlays and form controls */
+:root {
+  --p-primary-color: #003366;
+  --p-primary-500: #003366;
+  --p-primary-contrast-color: #ffffff;
+  --primary-color: #003366;
+}
+
+/* Solid fallback for older browsers */
+.overlay-backdrop,
+.p-component-overlay,
+.p-dialog-mask,
+.p-confirm-dialog-mask,
+.p-overlay-mask {
+  background-color: #00193c !important;
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .overlay-backdrop,
+  .p-component-overlay,
+  .p-dialog-mask,
+  .p-confirm-dialog-mask,
+  .p-overlay-mask {
+    background-color: rgba(0, 25, 60, 0.35) !important;
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+  }
+}
+
+:where(
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  select,
+  textarea,
+  .p-inputtext,
+  .p-dropdown .p-dropdown-label,
+  .p-calendar .p-inputtext
+) {
+  padding: 0.625rem 0.875rem;
+}
+
+:where(input, textarea)::placeholder,
+.p-inputtext::placeholder {
+  color: #6b7280;
+  opacity: 1;
+}
+
+input[type='checkbox'],
+.p-checkbox,
+.p-checkbox .p-checkbox-box {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.p-button.p-button-primary {
+  background: #003366;
+  border-color: #003366;
+}
+
+.p-button.p-button-primary:hover,
+.p-button.p-button-primary:enabled:hover {
+  background: #0a447a;
+  border-color: #0a447a;
+  box-shadow: 0 2px 8px rgba(0, 51, 102, 0.16);
+}
+
+.mission-primary-btn:hover {
+  background-color: #0a447a !important;
+  box-shadow: 0 2px 8px rgba(0, 51, 102, 0.16);
+}

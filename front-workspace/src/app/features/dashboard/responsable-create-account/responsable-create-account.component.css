@@ -1,0 +1,14 @@
+.create-hero {
+  background: linear-gradient(102deg, #1d3e8a 0%, #00508f 44%, #c8102e 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.create-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 10% 16%, rgba(255, 255, 255, 0.18), transparent 40%);
+  pointer-events: none;
+}

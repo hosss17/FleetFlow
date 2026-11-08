@@ -1,0 +1,270 @@
+<div class="space-y-8" id="dashboard-top">
+  <section class="employee-hero rounded-xl p-6 text-white shadow-lg">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <p class="text-sm uppercase tracking-[0.25em] opacity-80">Portail Employe</p>
+        <h1 class="text-3xl font-bold mt-1">Espace Logistique et Véhicules</h1>
+        <p class="opacity-90 mt-2">{{ employee.name }} | {{ employee.id }} | Role: Employe</p>
+      </div>
+      <div class="text-5xl opacity-25">
+        <i class="fas fa-truck-fast"></i>
+      </div>
+    </div>
+  </section>
+
+  @if (infoMessage) {
+    <div class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+      {{ infoMessage }}
+    </div>
+  }
+
+  <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+    @for (summary of summaries; track summary.label) {
+      <article class="bg-white rounded-xl p-5 shadow-card border-l-4" [style.border-left-color]="summary.color">
+        <div class="flex items-center justify-between">
+          <p class="text-xs uppercase tracking-wider text-gray-500 font-semibold">{{ summary.label }}</p>
+          <i [class]="summary.icon" [style.color]="summary.color"></i>
+        </div>
+        <p class="text-3xl font-extrabold mt-3" [style.color]="summary.color">{{ summary.value }}</p>
+      </article>
+    }
+  </section>
+
+  @if (showMissionComposer) {
+    <div class="fixed inset-0 z-[1100] flex items-center justify-center p-4">
+      <button
+        type="button"
+        class="overlay-backdrop absolute inset-0"
+        aria-label="Close mission form"
+        (click)="closeMissionComposer()"
+      ></button>
+
+      <div class="relative w-full max-w-2xl rounded-xl border border-blue-100 bg-white shadow-2xl">
+        <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+          <div>
+            <h3 class="text-lg font-bold text-attijari-dark">Creer une mission</h3>
+            <p class="text-xs text-gray-500 mt-1">Seul le responsable peut affecter un vehicule apres validation.</p>
+          </div>
+          <button
+            type="button"
+            class="h-9 w-9 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
+            aria-label="Close"
+            (click)="closeMissionComposer()"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="px-6 py-5">
+          <p class="text-xs text-gray-500 mb-3">Les champs marques avec <span class="text-red-600">*</span> sont obligatoires.</p>
+
+          @if (missionFormError) {
+            <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+              {{ missionFormError }}
+            </div>
+          }
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label class="space-y-1">
+              <span class="text-xs font-semibold text-gray-700">Destination <span class="text-red-600">*</span></span>
+              <input [(ngModel)]="missionForm.destination" required type="text" placeholder="Destination" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white" [class.border-red-300]="missionFormTouched && (!missionForm.destination.trim() || !isMissionDestinationValid())" />
+              @if (missionFormTouched && missionForm.destination.trim() && !isMissionDestinationValid()) {
+                <p class="text-[11px] text-red-700">La destination doit contenir des lettres et aucun nombre.</p>
+              }
+            </label>
+
+            <label class="space-y-1">
+              <span class="text-xs font-semibold text-gray-700">Priorite <span class="text-red-600">*</span></span>
+              <select [(ngModel)]="missionForm.priority" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white">
+                <option value="NORMAL">Priorite normale</option>
+                <option value="URGENT">Priorite urgente</option>
+              </select>
+            </label>
+
+            <label class="space-y-1">
+              <span class="text-xs font-semibold text-gray-700">Date de debut <span class="text-red-600">*</span></span>
+              <input [(ngModel)]="missionForm.startDate" required [min]="todayIso" [max]="missionForm.endDate || null" type="date" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white" [class.border-red-300]="missionFormTouched && (!missionForm.startDate || (missionForm.endDate && missionForm.startDate > missionForm.endDate))" />
+              @if (missionFormTouched && missionForm.startDate && missionForm.endDate && missionForm.startDate > missionForm.endDate) {
+                <p class="text-[11px] text-red-700">La date de debut doit etre inferieure ou egale a la date de fin.</p>
+              }
+            </label>
+
+            <label class="space-y-1">
+              <span class="text-xs font-semibold text-gray-700">Date de fin <span class="text-red-600">*</span></span>
+              <input [(ngModel)]="missionForm.endDate" required [min]="missionForm.startDate || todayIso" type="date" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white" [class.border-red-300]="missionFormTouched && (!missionForm.endDate || missionForm.endDate < missionForm.startDate)" />
+              @if (missionFormTouched && missionForm.endDate && missionForm.startDate && missionForm.endDate < missionForm.startDate) {
+                <p class="text-[11px] text-red-700">La date de fin doit etre superieure ou egale a la date de debut.</p>
+              }
+            </label>
+
+            <label class="md:col-span-2 space-y-1">
+              <span class="text-xs font-semibold text-gray-700">Objectif de la mission <span class="text-red-600">*</span></span>
+              <textarea [(ngModel)]="missionForm.objective" required rows="3" placeholder="Objectif de la mission" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white" [class.border-red-300]="missionFormTouched && (!missionForm.objective.trim() || !isMissionObjectiveValid())"></textarea>
+              @if (missionFormTouched && missionForm.objective.trim() && !isMissionObjectiveValid()) {
+                <p class="text-[11px] text-red-700">L'objectif doit contenir des lettres et aucun nombre.</p>
+              }
+            </label>
+
+            <label class="md:col-span-2 inline-flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+              <input [(ngModel)]="missionForm.needsVehicle" type="checkbox" class="h-4 w-4 accent-attijari-dark" />
+              Je demande l'affectation d'un véhicule
+            </label>
+          </div>
+
+          <div class="mt-5 flex items-center justify-end gap-3">
+            <button (click)="closeMissionComposer()" class="px-4 py-2 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+              Annuler
+            </button>
+            <button (click)="submitMissionRequest()" [disabled]="!canSubmitMissionRequest()" class="mission-primary-btn bg-attijari-dark text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-attijari-dark">
+              <i class="fas fa-paper-plane mr-2"></i>Envoyer la demande
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (selectedQrMission()) {
+    <div class="fixed inset-0 z-[1100] flex items-center justify-center p-4">
+      <button
+        type="button"
+        class="overlay-backdrop absolute inset-0"
+        aria-label="Fermer l'apercu QR"
+        (click)="closeQrModal()"
+      ></button>
+      <div class="relative w-full max-w-md rounded-xl bg-white shadow-2xl border border-gray-200 p-5">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-bold text-attijari-dark">QR Code - Acces Parking</h3>
+          <button type="button" class="h-9 w-9 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200" (click)="closeQrModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="mt-4 flex flex-col items-center gap-3">
+          <img [src]="selectedQrMission()?.qrCodeDataUrl" alt="QR Code Parking" class="w-56 h-56 rounded border border-gray-200" />
+          <p class="text-xs text-gray-500">Mission {{ selectedQrMission()?.id }} | Agrandi pour scan</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <section class="bg-white rounded-xl shadow-card border border-gray-100 overflow-hidden" id="mission-history">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <h2 class="text-xl font-bold text-attijari-dark flex items-center gap-2">
+        <i class="fas fa-list-check text-attijari-red"></i>
+        Mes demandes de mission
+      </h2>
+      <div class="flex items-center gap-3">
+        <span class="text-sm text-gray-500 hidden md:inline">Vous voyez uniquement vos donnees</span>
+        <button (click)="toggleMissionComposer()" class="px-4 py-2 bg-gradient-to-r from-attijari-dark to-attijari-red text-white rounded-lg text-sm font-semibold hover:opacity-90">
+          <i class="fas fa-plus mr-2"></i>{{ showMissionComposer ? 'Fermer' : 'Nouvelle mission' }}
+        </button>
+      </div>
+    </div>
+
+    <div id="create-mission"></div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full mission-history-table">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase"><i class="fas fa-hashtag mr-2"></i>Mission</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase"><i class="fas fa-map-location-dot mr-2"></i>Destination</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase"><i class="fas fa-calendar-days mr-2"></i>Date/Heure creation</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase"><i class="fas fa-flag mr-2"></i>Statut</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase"><i class="fas fa-car mr-2"></i>Vehicule affecte</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase"><i class="fas fa-qrcode mr-2"></i>QR Parking</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (mission of missions; track mission.id) {
+            <tr class="mission-row">
+              <td class="px-5 py-4 text-sm font-semibold text-attijari-dark">
+                <div class="mission-id-cell">
+                  <span class="mission-id">{{ mission.id }}</span>
+                  <div class="mission-outcome-actions">
+                    <button
+                      type="button"
+                      class="mission-outcome-btn mission-outcome-btn--done"
+                      title="Marquer terminee"
+                      aria-label="Marquer mission terminee"
+                      [disabled]="!canSetMissionOutcome(mission) || isMissionUpdating(mission.id)"
+                      (click)="markMissionAsTerminee(mission.id)">
+                      <img src="assets/branding/check.svg" alt="Terminée" class="mission-outcome-icon" />
+                    </button>
+                    <button
+                      type="button"
+                      class="mission-outcome-btn mission-outcome-btn--failed"
+                      title="Marquer echouee"
+                      aria-label="Marquer mission echouee"
+                      [disabled]="!canSetMissionOutcome(mission) || isMissionUpdating(mission.id)"
+                      (click)="markMissionAsEchouee(mission.id)">
+                      <img src="assets/branding/x.svg" alt="Échouée" class="mission-outcome-icon" />
+                    </button>
+                  </div>
+                </div>
+              </td>
+              <td class="px-5 py-4 text-sm text-gray-700">
+                <p class="font-medium">{{ mission.destination }}</p>
+                <p class="text-xs text-gray-500 mt-1">{{ mission.objective }}</p>
+              </td>
+              <td class="px-5 py-4 text-sm text-gray-700">{{ formatDateTime(mission.createdAt) }}</td>
+              <td class="px-5 py-4 text-sm">
+                <span class="px-3 py-1 rounded-full text-xs font-semibold" [class]="statusChip(mission.status)">{{ mission.status }}</span>
+              </td>
+              <td class="px-5 py-4 text-sm text-gray-700">{{ mission.assignedVehiclePlate || '-' }}</td>
+              <td class="px-5 py-4 text-sm text-gray-700">
+                @if (mission.qrCodeDataUrl) {
+                  <div class="flex items-center gap-3">
+                    <img [src]="mission.qrCodeDataUrl" alt="Parking QR" class="w-16 h-16 rounded border border-gray-200" />
+                    <button (click)="openQrModal(mission.id)" class="text-xs font-semibold text-attijari-dark underline underline-offset-2">
+                      Agrandir
+                    </button>
+                  </div>
+                } @else {
+                  <span class="text-xs text-gray-400">En attente de validation</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <article class="bg-white rounded-xl shadow-card p-6 border border-gray-100">
+      <h2 class="text-xl font-bold text-attijari-dark mb-4 flex items-center gap-2"><i class="fas fa-bug text-attijari-red"></i>Signaler un probleme</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <select [(ngModel)]="problemForm.category" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <option value="PARKING">Parking</option>
+          <option value="MECANIQUE">Mecanique</option>
+          <option value="SECURITE">Securite</option>
+        </select>
+        <select [(ngModel)]="problemForm.severity" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <option value="FAIBLE">Faible</option>
+          <option value="MOYENNE">Moyenne</option>
+          <option value="CRITIQUE">Critique</option>
+        </select>
+        <textarea [(ngModel)]="problemForm.description" rows="3" placeholder="Details du probleme" class="md:col-span-2 rounded-lg border border-gray-300 px-3 py-2 text-sm"></textarea>
+      </div>
+      <button (click)="submitProblemReport()" class="mt-4 bg-attijari-dark text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-opacity-90">
+        <i class="fas fa-bug mr-2"></i>Envoyer le signalement
+      </button>
+    </article>
+
+    <article class="bg-white rounded-xl shadow-card p-6 border border-gray-100">
+      <h2 class="text-xl font-bold text-attijari-dark mb-4 flex items-center gap-2"><i class="fas fa-clock-rotate-left text-attijari-dark"></i>Suivi de mes incidents</h2>
+      <div class="space-y-3 max-h-72 overflow-auto">
+        @for (report of reports; track report.id) {
+          <div class="rounded-lg border border-gray-200 p-3">
+            <div class="flex items-center justify-between">
+              <p class="text-sm font-semibold text-gray-800">{{ report.id }} - {{ report.category }}</p>
+              <span class="px-3 py-1 rounded-full text-xs font-semibold" [class]="statusChip(report.status)">{{ report.status }}</span>
+            </div>
+            <p class="text-xs text-gray-600 mt-2">{{ report.description }}</p>
+          </div>
+        }
+      </div>
+    </article>
+  </section>
+</div>

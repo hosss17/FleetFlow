@@ -1,0 +1,173 @@
+<section class="parking-wrap">
+  <header class="parking-toolbar">
+    <div class="branding-block">
+      <p class="brand-kicker">Attijari Fleet Hub</p>
+      <h2>Parking 2D Blueprint</h2>
+      <p class="brand-subtitle">Vue moderne du parking avec statut flotte lisible en temps reel.</p>
+    </div>
+
+    <div class="metric-grid">
+      <article class="metric-card neutral">
+        <span>Total</span>
+        <strong>{{ totalCount }}</strong>
+      </article>
+      <article class="metric-card available">
+        <span>Disponibles</span>
+        <strong>{{ availableCount }}</strong>
+      </article>
+      <article class="metric-card unavailable">
+        <span>Indisponibles</span>
+        <strong>{{ unavailableCount }}</strong>
+      </article>
+    </div>
+  </header>
+
+  <div class="control-row">
+    <div class="pill-group filter-group">
+      <button
+        type="button"
+        *ngFor="let filter of filters"
+        [class.active]="selectedFilter === filter"
+        (click)="applyFilter(filter)"
+      >
+        {{ filterLabels[filter] }}
+      </button>
+    </div>
+
+    <div class="search-wrap">
+      <label for="parking-search">Recherche</label>
+      <div class="search-row">
+        <input
+          id="parking-search"
+          type="text"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchTermChange()"
+          (keydown.enter)="confirmSearch()"
+          placeholder="Plaque ou modele"
+        />
+        <button type="button" class="search-confirm" (click)="confirmSearch()">Valider</button>
+      </div>
+      <small class="search-feedback" *ngIf="searchFeedback">{{ searchFeedback }}</small>
+    </div>
+
+    <div class="pill-group">
+      <span class="group-label">Options plan</span>
+      <button type="button" (click)="refreshNow()">Rafraichir</button>
+      <button type="button" (click)="resetMapPosition()">Centrer plan</button>
+    </div>
+  </div>
+
+  <div class="scene-shell" [class.with-panel]="selectedVehicle">
+    <div
+      class="scene-canvas"
+      [class.dragging]="isDraggingMap"
+      (pointerdown)="onMapPointerDown($event)"
+      (pointermove)="onMapPointerMove($event)"
+      (pointerup)="onMapPointerUp()"
+      (pointerleave)="onMapPointerUp()"
+      (pointercancel)="onMapPointerUp()"
+    >
+      <svg class="parking-svg" [attr.viewBox]="viewBox" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="laneGradient" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stop-color="#e2e8f0" />
+            <stop offset="100%" stop-color="#cbd5e1" />
+          </linearGradient>
+        </defs>
+
+        <g [attr.transform]="mapTransform">
+          <rect x="0" y="0" [attr.width]="boardWidth" [attr.height]="boardHeight" fill="#dce6f8" />
+          <rect
+            x="40"
+            y="52"
+            [attr.width]="boardWidth - 80"
+            height="146"
+            rx="18"
+            fill="#edf3ff"
+          />
+          <rect
+            x="40"
+            y="256"
+            [attr.width]="boardWidth - 80"
+            height="146"
+            rx="18"
+            fill="#edf3ff"
+          />
+          <rect
+            x="40"
+            y="460"
+            [attr.width]="boardWidth - 80"
+            height="146"
+            rx="18"
+            fill="#edf3ff"
+          />
+
+          <rect x="40" y="205" [attr.width]="boardWidth - 80" height="68" rx="14" fill="url(#laneGradient)" />
+          <rect x="40" y="409" [attr.width]="boardWidth - 80" height="68" rx="14" fill="url(#laneGradient)" />
+
+          <text x="52" y="74" class="zone-label">Zone A</text>
+          <text x="52" y="278" class="zone-label">Zone B</text>
+          <text x="52" y="482" class="zone-label">Zone C</text>
+
+          <g *ngFor="let spot of spots">
+            <rect
+              [attr.x]="spot.x"
+              [attr.y]="spot.y"
+              [attr.width]="spot.width"
+              [attr.height]="spot.height"
+              rx="10"
+              [attr.class]="
+                getSpotClass(spot.id) +
+                (selectedSpotId === spot.id ? ' selected' : '') +
+                (isSpotSearchMatch(spot.id) ? ' matched' : '')
+              "
+              tabindex="0"
+              role="button"
+              [attr.aria-label]="getSpotAriaLabel(spot)"
+              (pointerdown)="onSpotPointerDown($event)"
+              (click)="selectSpot(spot.id)"
+              (keydown)="onSpotKeydown($event, spot.id)"
+            />
+
+            <text [attr.x]="spot.x + 8" [attr.y]="spot.y + 19" class="spot-label">{{ spot.label }}</text>
+            <text [attr.x]="spot.x + 8" [attr.y]="spot.y + 42" class="spot-state">{{ getSpotStatusText(spot.id) }}</text>
+
+            <text
+              *ngIf="getSpotVehicle(spot.id) as vehicle"
+              [attr.x]="spot.x + 6"
+              [attr.y]="spot.y + 66"
+              [attr.textLength]="spot.width - 12"
+              lengthAdjust="spacingAndGlyphs"
+              class="spot-plate"
+            >
+              {{ getSpotPlateLabel(spot.id) }}
+            </text>
+          </g>
+        </g>
+      </svg>
+    </div>
+
+    <aside class="selection-panel" aria-label="Details du spot selectionne" *ngIf="selectedVehicle as vehicle">
+      <p class="panel-kicker">Spot selection</p>
+      <p class="panel-spot-id">{{ selectedSpotLabel }}</p>
+      <h4>{{ vehicle.plateNumber }}</h4>
+      <p>{{ vehicle.model }}</p>
+      <div class="status-chip" [class.available]="vehicle.available" [class.unavailable]="!vehicle.available">
+        {{ vehicle.available ? 'Disponible' : 'Indisponible' }}
+      </div>
+      <dl class="details-grid">
+        <div>
+          <dt>Etat</dt>
+          <dd>{{ vehicle.status }}</dd>
+        </div>
+        <div>
+          <dt>Filtre actif</dt>
+          <dd>{{ filterLabels[selectedFilter] }}</dd>
+        </div>
+      </dl>
+    </aside>
+
+    <div class="scene-state error" *ngIf="loadingError">{{ loadingError }}</div>
+  </div>
+
+</section>

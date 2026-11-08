@@ -1,0 +1,101 @@
+<div class="space-y-8">
+  <section class="account-hero rounded-xl p-6 text-white shadow-lg">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <p class="text-sm uppercase tracking-[0.25em] opacity-80">Mon Compte</p>
+        <h1 class="text-3xl font-bold mt-1">Profil Employe</h1>
+        <p class="opacity-90 mt-2">Vos informations personnelles et professionnelles</p>
+      </div>
+      <div class="text-5xl opacity-25">
+        <i class="fas fa-id-card"></i>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid grid-cols-1 md:grid-cols-2 gap-5">
+    @for (field of accountFields; track field.label) {
+      <article class="bg-white rounded-xl p-5 shadow-card border border-gray-100 account-card">
+        <div class="flex items-start gap-3">
+          <div class="icon-pill">
+            <i [class]="field.icon"></i>
+          </div>
+          <div>
+            <p class="text-xs uppercase tracking-wider text-gray-500 font-semibold">{{ field.label }}</p>
+            <p class="mt-1 text-base font-semibold text-attijari-dark break-all">{{ field.value }}</p>
+          </div>
+        </div>
+      </article>
+    }
+  </section>
+
+  <section class="telegram-link-panel rounded-xl p-6 shadow-card border border-sky-100">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <p class="text-xs uppercase tracking-[0.24em] text-sky-700 font-semibold">Telegram Assistant</p>
+        <h2 class="text-2xl font-bold text-attijari-dark mt-1">Link Your Telegram Account</h2>
+        <p class="text-sm text-gray-600 mt-2">
+          Generate a secure 6-digit code, then send <span class="font-semibold">LINK &lt;code&gt;</span> to the bot.
+        </p>
+      </div>
+      <div class="telegram-logo-circle">
+        <i class="fa-brands fa-telegram"></i>
+      </div>
+    </div>
+
+    <div class="telegram-status mt-5" [class.is-linked]="telegramLinkStatus?.linked">
+      @if (isLoadingLinkStatus) {
+        <p class="text-sm text-gray-500">Loading link status...</p>
+      } @else if (telegramLinkStatus?.linked) {
+        <p class="font-semibold text-emerald-700">Linked to Telegram {{ telegramLinkStatus?.telegramIdMasked }}</p>
+        <p class="text-xs text-gray-500 mt-1">Linked at: {{ telegramLinkStatus?.linkedAt }}</p>
+      } @else {
+        <p class="font-semibold text-amber-700">No Telegram account linked yet.</p>
+      }
+    </div>
+
+    <div class="telegram-actions mt-5">
+      <button
+        type="button"
+        class="btn-primary"
+        (click)="generateTelegramCode()"
+        [disabled]="isGeneratingCode"
+      >
+        <i class="fas fa-shield-alt"></i>
+        {{ isGeneratingCode ? 'Generating...' : 'Generate Verification Code' }}
+      </button>
+
+      <button
+        type="button"
+        class="btn-ghost"
+        (click)="unlinkTelegram()"
+        [disabled]="isUnlinking"
+      >
+        <i class="fas fa-link-slash"></i>
+        {{ isUnlinking ? 'Unlinking...' : 'Unlink Telegram' }}
+      </button>
+    </div>
+
+    @if (latestCode) {
+      <div class="code-box mt-5">
+        <p class="text-xs uppercase tracking-wider text-gray-500 font-semibold">Verification Code</p>
+        <div class="flex flex-wrap items-center gap-3 mt-2">
+          <p class="code-value">{{ latestCode.code }}</p>
+          <button type="button" class="btn-copy" (click)="copyCodeToClipboard(latestCode.code)">
+            <i class="fas fa-copy"></i>
+            Copy
+          </button>
+        </div>
+        <p class="text-xs text-gray-600 mt-2">Expires at: {{ latestCode.expiresAt }}</p>
+        <p class="text-sm text-sky-700 mt-2">{{ latestCode.instructions }}</p>
+      </div>
+    }
+
+    @if (linkSuccess) {
+      <p class="feedback success mt-4"><i class="fas fa-circle-check"></i> {{ linkSuccess }}</p>
+    }
+
+    @if (linkError) {
+      <p class="feedback error mt-4"><i class="fas fa-triangle-exclamation"></i> {{ linkError }}</p>
+    }
+  </section>
+</div>

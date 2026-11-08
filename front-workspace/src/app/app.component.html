@@ -1,0 +1,17 @@
+<div class="app-wrapper">
+  @if (currentRole) {
+    <app-sidebar [role]="currentRole" (sidebarStateChange)="onSidebarStateChange($event)"></app-sidebar>
+  }
+
+
+  <div class="content-wrapper" [class.with-shell]="!!currentRole">
+    @if (currentRole) {
+      <app-header [role]="currentRole" [userName]="userName"></app-header>
+    }
+
+
+    <main class="page-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

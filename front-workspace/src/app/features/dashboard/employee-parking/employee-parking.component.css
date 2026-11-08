@@ -1,0 +1,26 @@
+.parking-hero {
+  background: linear-gradient(98deg, #0b3d91 0%, #00508f 46%, #c8102e 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.parking-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 85% 20%, rgba(255, 255, 255, 0.16), transparent 38%);
+  pointer-events: none;
+}
+
+.parking-table tbody tr td {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.parking-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.parking-table tbody tr:hover {
+  background: #f9fbff;
+}

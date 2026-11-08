@@ -1,0 +1,155 @@
+.account-hero {
+  background: linear-gradient(100deg, #003b71 0%, #00508f 42%, #c8102e 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.account-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.18), transparent 42%);
+  pointer-events: none;
+}
+
+.account-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.account-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+
+.icon-pill {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef4ff;
+  color: #003b71;
+  flex-shrink: 0;
+}
+
+.telegram-link-panel {
+  background: linear-gradient(130deg, #f9fdff 0%, #eef7ff 52%, #f4fbff 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.telegram-link-panel::before {
+  content: '';
+  position: absolute;
+  right: -5rem;
+  top: -6rem;
+  width: 14rem;
+  height: 14rem;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.2), transparent 70%);
+  pointer-events: none;
+}
+
+.telegram-logo-circle {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(150deg, #e0f2fe, #bae6fd);
+  color: #0c4a6e;
+  font-size: 1.8rem;
+  box-shadow: 0 10px 20px rgba(14, 165, 233, 0.25);
+}
+
+.telegram-status {
+  border-radius: 0.75rem;
+  border: 1px solid #fde68a;
+  background: #fffef2;
+  padding: 0.9rem 1rem;
+}
+
+.telegram-status.is-linked {
+  border-color: #6ee7b7;
+  background: #ecfdf5;
+}
+
+.telegram-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn-primary,
+.btn-ghost,
+.btn-copy {
+  border: 0;
+  border-radius: 0.75rem;
+  padding: 0.68rem 1rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(130deg, #0c4a6e 0%, #0369a1 100%);
+  color: #ffffff;
+  box-shadow: 0 10px 16px rgba(14, 116, 144, 0.25);
+}
+
+.btn-ghost {
+  background: #e0f2fe;
+  color: #075985;
+}
+
+.btn-copy {
+  background: #dbeafe;
+  color: #1e3a8a;
+}
+
+.btn-primary:hover,
+.btn-ghost:hover,
+.btn-copy:hover {
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled,
+.btn-ghost:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.code-box {
+  border: 1px dashed #7dd3fc;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  padding: 1rem;
+}
+
+.code-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  color: #0c4a6e;
+}
+
+.feedback {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+}
+
+.feedback.success {
+  color: #047857;
+}
+
+.feedback.error {
+  color: #b91c1c;
+}

@@ -1,0 +1,156 @@
+<div class="history-page">
+  <section class="history-hero">
+    <div>
+      <p class="eyebrow">Gestion Missions</p>
+      <h1>Historique des missions</h1>
+      <p>Consultez toutes les missions et affichez leurs details complets en un clic.</p>
+    </div>
+    <div class="hero-kpis">
+      <article>
+        <i class="fas fa-road"></i>
+        <span>{{ missions.length }}</span>
+        <small>Total missions</small>
+      </article>
+      <article>
+        <i class="fas fa-hourglass-half"></i>
+        <span>{{ pendingMissionsCount() }}</span>
+        <small>En attente</small>
+      </article>
+      <article>
+        <i class="fas fa-circle-check"></i>
+        <span>{{ completedMissionsCount() }}</span>
+        <small>Terminees</small>
+      </article>
+    </div>
+  </section>
+
+  <section class="history-controls">
+    <div class="search-box">
+      <i class="fas fa-magnifying-glass"></i>
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Rechercher mission, employe, destination..." />
+    </div>
+
+    <div class="filters">
+      <button type="button" [class.active]="activeFilter === 'ALL'" (click)="activeFilter = 'ALL'">Tous</button>
+      <button type="button" [class.active]="activeFilter === 'EN_ATTENTE'" (click)="activeFilter = 'EN_ATTENTE'">En attente</button>
+      <button type="button" [class.active]="activeFilter === 'APPROUVEE'" (click)="activeFilter = 'APPROUVEE'">Approuvee</button>
+      <button type="button" [class.active]="activeFilter === 'TERMINEE'" (click)="activeFilter = 'TERMINEE'">Terminee</button>
+      <button type="button" [class.active]="activeFilter === 'ECHOUEE'" (click)="activeFilter = 'ECHOUEE'">Echouee</button>
+      <button type="button" [class.active]="activeFilter === 'REFUSEE'" (click)="activeFilter = 'REFUSEE'">Refusee</button>
+    </div>
+  </section>
+
+  <section class="history-layout">
+    <aside class="mission-list">
+      @for (mission of filteredMissions(); track mission.id) {
+        <button
+          type="button"
+          class="mission-card"
+          [class.active]="mission.id === selectedMissionId"
+          (click)="selectMission(mission.id)">
+          <div class="mission-card-top">
+            <p>{{ mission.id }}</p>
+            <span [class]="statusChip(mission.status)">{{ mission.status }}</span>
+          </div>
+          <h3>{{ mission.destination }}</h3>
+          <p class="muted"><i class="fas fa-user"></i> {{ mission.employee.name }}</p>
+          <p class="muted"><i class="fas fa-calendar"></i> {{ formatDate(mission.startDate) }} - {{ formatDate(mission.endDate) }}</p>
+        </button>
+      }
+
+      @if (filteredMissions().length === 0) {
+        <div class="empty-state">
+          <i class="fas fa-folder-open"></i>
+          <p>Aucune mission trouvee avec ce filtre.</p>
+        </div>
+      }
+    </aside>
+
+    <article class="mission-details">
+      @if (selectedMission(); as mission) {
+        <div class="details-head fade-in">
+          <div>
+            <p class="eyebrow">Mission selectionnee</p>
+            <h2>{{ mission.id }} - {{ mission.destination }}</h2>
+            <p>{{ mission.objective }}</p>
+          </div>
+          <span [class]="statusChip(mission.status)">{{ mission.status }}</span>
+        </div>
+
+        <div class="details-grid fade-in-delay">
+          <div class="details-card">
+            <h3><i class="fas fa-id-card"></i> Informations mission</h3>
+            <ul>
+              <li><strong>Employe:</strong> {{ mission.employee.name }}</li>
+              <li><strong>Periode:</strong> {{ formatDate(mission.startDate) }} au {{ formatDate(mission.endDate) }}</li>
+              <li><strong>Priorite:</strong> {{ mission.priority }}</li>
+              <li><strong>Vehicule requis:</strong> {{ mission.needsVehicle ? 'Oui' : 'Non' }}</li>
+              <li><strong>Vehicule assigne:</strong> {{ mission.assignedVehiclePlate || 'Non assigne' }}</li>
+            </ul>
+          </div>
+
+          <div class="details-card">
+            <h3><i class="fas fa-qrcode"></i> Parking & QR</h3>
+            @if (mission.qrCodeDataUrl) {
+              <img [src]="mission.qrCodeDataUrl" alt="QR mission" class="qr-preview" />
+              <p class="muted">Badge parking genere pour cette mission.</p>
+            } @else {
+              <p class="muted">Aucun QR genere pour cette mission.</p>
+            }
+          </div>
+
+          @if (mission.status === 'REFUSEE' && mission.rejectionReason) {
+            <div class="details-card full-width rejection-reason-card">
+              <h3><i class="fas fa-circle-xmark"></i> Raison du refus</h3>
+              <div class="rejection-reason-content">
+                <p>{{ mission.rejectionReason }}</p>
+              </div>
+            </div>
+          }
+
+          <div class="details-card full-width">
+            <h3><i class="fas fa-car"></i> Reservations liees</h3>
+            @if (missionReservations(mission).length > 0) {
+              <div class="chips-wrap">
+                @for (reservation of missionReservations(mission); track reservation.id) {
+                  <span class="pill">
+                    {{ reservation.id }} | {{ reservation.requestedType }} | {{ reservation.status }}
+                  </span>
+                }
+              </div>
+            } @else {
+              <p class="muted">Aucune reservation correspondante.</p>
+            }
+          </div>
+
+          <div class="details-card full-width">
+            <h3><i class="fas fa-triangle-exclamation"></i> Incidents lies</h3>
+            @if (missionReports(mission).length > 0) {
+              <div class="report-list">
+                @for (report of missionReports(mission); track report.id) {
+                  <article>
+                    <div>
+                      <strong>{{ report.id }}</strong>
+                      <span>{{ report.category }} | {{ report.severity }}</span>
+                    </div>
+                    <p>{{ report.description }}</p>
+                  </article>
+                }
+              </div>
+            } @else {
+              <p class="muted">Aucun incident relie a cette mission.</p>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="empty-state large">
+          <i class="fas fa-arrow-pointer"></i>
+          <p>Selectionnez une mission a gauche pour afficher les details.</p>
+        </div>
+      }
+    </article>
+  </section>
+</div>

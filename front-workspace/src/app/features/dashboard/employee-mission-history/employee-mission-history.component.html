@@ -1,0 +1,217 @@
+<div class="history-page">
+  <section class="history-hero">
+    <div>
+      <p class="eyebrow">Mes Missions</p>
+      <h1>Historique des missions</h1>
+      <p>Consultez vos missions et affichez tous les details de parking, reservations et incidents.</p>
+    </div>
+    <div class="hero-kpis">
+      <article>
+        <i class="fas fa-road"></i>
+        <span>{{ missions.length }}</span>
+        <small>Total missions</small>
+      </article>
+      <article>
+        <i class="fas fa-hourglass-half"></i>
+        <span>{{ pendingMissionsCount() }}</span>
+        <small>En attente</small>
+      </article>
+      <article>
+        <i class="fas fa-circle-check"></i>
+        <span>{{ completedMissionsCount() }}</span>
+        <small>Terminees</small>
+      </article>
+    </div>
+  </section>
+
+  @if (showMissionComposer) {
+    <div class="fixed inset-0 z-[1100] flex items-center justify-center p-4">
+      <button
+        type="button"
+        class="absolute inset-0 bg-black/35"
+        aria-label="Close mission form"
+        (click)="closeMissionComposer()"
+      ></button>
+
+      <div class="relative w-full max-w-2xl rounded-xl border border-blue-100 bg-white shadow-2xl">
+        <div class="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+          <div>
+            <h3 class="text-lg font-bold text-attijari-dark">Creer une mission</h3>
+            <p class="text-xs text-gray-500 mt-1">Seul le responsable peut affecter un vehicule apres validation.</p>
+          </div>
+          <button
+            type="button"
+            class="h-9 w-9 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
+            aria-label="Close"
+            (click)="closeMissionComposer()"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="px-6 py-5">
+          <p class="text-xs text-gray-500 mb-3">Les champs marques avec <span class="text-red-600">*</span> sont obligatoires.</p>
+
+          @if (missionFormError) {
+            <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+              {{ missionFormError }}
+            </div>
+          }
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label class="space-y-1">
+              <span class="text-xs font-semibold text-gray-700">Destination <span class="text-red-600">*</span></span>
+              <input [(ngModel)]="missionForm.destination" required type="text" placeholder="Destination" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white" [class.border-red-300]="missionFormTouched && (!missionForm.destination.trim() || !isMissionDestinationValid())" />
+              @if (missionFormTouched && missionForm.destination.trim() && !isMissionDestinationValid()) {
+                <p class="text-[11px] text-red-700">La destination doit contenir des lettres et aucun nombre.</p>
+              }
+            </label>
+
+            <label class="space-y-1">
+              <span class="text-xs font-semibold text-gray-700">Priorite <span class="text-red-600">*</span></span>
+              <select [(ngModel)]="missionForm.priority" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white">
+                <option value="NORMAL">Priorite normale</option>
+                <option value="URGENT">Priorite urgente</option>
+              </select>
+            </label>
+
+            <label class="space-y-1">
+              <span class="text-xs font-semibold text-gray-700">Date de debut <span class="text-red-600">*</span></span>
+              <input [(ngModel)]="missionForm.startDate" required [min]="todayIso" [max]="missionForm.endDate || null" type="date" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white" [class.border-red-300]="missionFormTouched && (!missionForm.startDate || (missionForm.endDate && missionForm.startDate > missionForm.endDate))" />
+              @if (missionFormTouched && missionForm.startDate && missionForm.endDate && missionForm.startDate > missionForm.endDate) {
+                <p class="text-[11px] text-red-700">La date de debut doit etre inferieure ou egale a la date de fin.</p>
+              }
+            </label>
+
+            <label class="space-y-1">
+              <span class="text-xs font-semibold text-gray-700">Date de fin <span class="text-red-600">*</span></span>
+              <input [(ngModel)]="missionForm.endDate" required [min]="missionForm.startDate || todayIso" type="date" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white" [class.border-red-300]="missionFormTouched && (!missionForm.endDate || missionForm.endDate < missionForm.startDate)" />
+              @if (missionFormTouched && missionForm.endDate && missionForm.startDate && missionForm.endDate < missionForm.startDate) {
+                <p class="text-[11px] text-red-700">La date de fin doit etre superieure ou egale a la date de debut.</p>
+              }
+            </label>
+
+            <label class="md:col-span-2 space-y-1">
+              <span class="text-xs font-semibold text-gray-700">Objectif de la mission <span class="text-red-600">*</span></span>
+              <textarea [(ngModel)]="missionForm.objective" required rows="3" placeholder="Objectif de la mission" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm bg-white" [class.border-red-300]="missionFormTouched && (!missionForm.objective.trim() || !isMissionObjectiveValid())"></textarea>
+              @if (missionFormTouched && missionForm.objective.trim() && !isMissionObjectiveValid()) {
+                <p class="text-[11px] text-red-700">L'objectif doit contenir des lettres et aucun nombre.</p>
+              }
+            </label>
+
+            <label class="md:col-span-2 inline-flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+              <input [(ngModel)]="missionForm.needsVehicle" type="checkbox" class="h-4 w-4 accent-attijari-dark" />
+              Je demande l'affectation d'un véhicule
+            </label>
+          </div>
+
+          <div class="mt-5 flex items-center justify-end gap-3">
+            <button (click)="closeMissionComposer()" class="px-4 py-2 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+              Annuler
+            </button>
+            <button (click)="submitMissionRequest()" [disabled]="!canSubmitMissionRequest()" class="bg-attijari-dark text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-attijari-dark">
+              <i class="fas fa-paper-plane mr-2"></i>Envoyer la demande
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (infoMessage) {
+    <section class="history-alert">
+      <i class="fas fa-circle-info"></i>
+      <span>{{ infoMessage }}</span>
+    </section>
+  }
+
+  <section class="history-controls">
+    <div class="search-box">
+      <i class="fas fa-magnifying-glass"></i>
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Rechercher mission, destination, objectif..." />
+    </div>
+
+    <button type="button" class="px-4 py-2 bg-gradient-to-r from-attijari-dark to-attijari-red text-white rounded-lg text-sm font-semibold hover:opacity-90" (click)="toggleMissionComposer()">
+      <i class="fas fa-plus mr-2"></i>{{ showMissionComposer ? 'Fermer' : 'Nouvelle mission' }}
+    </button>
+
+    <div class="filters">
+      <button type="button" [class.active]="activeFilter === 'ALL'" (click)="activeFilter = 'ALL'">Tous</button>
+      <button type="button" [class.active]="activeFilter === 'EN_ATTENTE'" (click)="activeFilter = 'EN_ATTENTE'">En attente</button>
+      <button type="button" [class.active]="activeFilter === 'APPROUVEE'" (click)="activeFilter = 'APPROUVEE'">Approuvee</button>
+      <button type="button" [class.active]="activeFilter === 'TERMINEE'" (click)="activeFilter = 'TERMINEE'">Terminee</button>
+      <button type="button" [class.active]="activeFilter === 'ECHOUEE'" (click)="activeFilter = 'ECHOUEE'">Echouee</button>
+      <button type="button" [class.active]="activeFilter === 'REFUSEE'" (click)="activeFilter = 'REFUSEE'">Refusee</button>
+    </div>
+  </section>
+
+  <section class="history-layout">
+    <aside class="mission-list">
+      @for (mission of filteredMissions(); track mission.id) {
+        <button
+          type="button"
+          class="mission-card"
+          [class.active]="mission.id === selectedMissionId"
+          (click)="selectMission(mission.id)">
+          <div class="mission-card-top">
+            <p>{{ mission.id }}</p>
+            <span [class]="statusChip(mission.status)">{{ mission.status }}</span>
+          </div>
+          <h3>{{ mission.destination }}</h3>
+          <p class="muted"><i class="fas fa-calendar"></i> {{ formatDate(mission.startDate) }} - {{ formatDate(mission.endDate) }}</p>
+        </button>
+      }
+
+      @if (filteredMissions().length === 0) {
+        <div class="empty-state">
+          <i class="fas fa-folder-open"></i>
+          <p>Aucune mission trouvee avec ce filtre.</p>
+        </div>
+      }
+    </aside>
+
+    <article class="mission-details">
+      @if (selectedMission(); as mission) {
+        <div class="details-head fade-in">
+          <div>
+            <p class="eyebrow">Mission selectionnee</p>
+            <h2>{{ mission.id }} - {{ mission.destination }}</h2>
+            <p>{{ mission.objective }}</p>
+          </div>
+          <span [class]="statusChip(mission.status)">{{ mission.status }}</span>
+        </div>
+
+        <div class="details-grid fade-in-delay">
+          <div class="details-card">
+            <h3><i class="fas fa-id-card"></i> Informations mission</h3>
+            <ul>
+              <li><strong>Periode:</strong> {{ formatDate(mission.startDate) }} au {{ formatDate(mission.endDate) }}</li>
+              <li><strong>Priorite:</strong> {{ mission.priority }}</li>
+              <li><strong>Vehicule requis:</strong> {{ mission.needsVehicle ? 'Oui' : 'Non' }}</li>
+              <li><strong>Vehicule assigne:</strong> {{ mission.assignedVehiclePlate || 'Non assigne' }}</li>
+            </ul>
+          </div>
+
+          <div class="details-card">
+            <h3><i class="fas fa-qrcode"></i> Parking & QR</h3>
+            @if (mission.qrCodeDataUrl) {
+              <img [src]="mission.qrCodeDataUrl" alt="QR mission" class="qr-preview" />
+              <p class="muted">Badge parking genere pour cette mission.</p>
+            } @else {
+              <p class="muted">Aucun QR genere pour cette mission.</p>
+            }
+          </div>
+
+        </div>
+      } @else {
+        <div class="empty-state large">
+          <i class="fas fa-arrow-pointer"></i>
+          <p>Selectionnez une mission a gauche pour afficher les details.</p>
+        </div>
+      }
+    </article>
+  </section>
+</div>

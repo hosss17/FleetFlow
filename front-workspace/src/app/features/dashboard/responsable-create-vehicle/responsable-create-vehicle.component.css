@@ -1,0 +1,7 @@
+:host {
+  display: block;
+}
+
+.create-hero {
+  background: linear-gradient(115deg, #003366 0%, #0052a4 45%, #ff6b35 100%);
+}

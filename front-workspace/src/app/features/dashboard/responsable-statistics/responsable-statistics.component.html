@@ -1,0 +1,158 @@
+<div class="stats-page" id="stats-top">
+  <section class="stats-hero">
+    <div>
+      <p class="hero-eyebrow">Tableau Decisionnel</p>
+      <h1 class="hero-title">Statistiques Logistiques</h1>
+    </div>
+    <div class="hero-actions">
+      <button type="button" class="hero-refresh" (click)="reloadStats()">
+        <i class="fa-solid fa-rotate"></i>
+        Actualiser
+      </button>
+      <button type="button" class="hero-download" (click)="downloadPdf()">
+        <i class="fa-solid fa-download"></i>
+        Télécharger PDF
+      </button>
+    </div>
+  </section>
+
+  @if (loadError) {
+    <div class="error-box">{{ loadError }}</div>
+  }
+
+  @if (isLoading) {
+    <section class="loading-grid">
+      @for (skeleton of [1,2,3,4]; track skeleton) {
+        <div class="skeleton-card"></div>
+      }
+    </section>
+  } @else {
+    <section class="kpi-grid">
+      @for (kpi of summaryKpis; track kpi.label) {
+        <article class="kpi-card" [class]="toneClass(kpi.tone)">
+          <div class="kpi-top">
+            <p class="kpi-label">{{ kpi.label }}</p>
+            <i [class]="kpi.icon"></i>
+          </div>
+          <p class="kpi-value">{{ kpi.value }}</p>
+          <p class="kpi-trend">{{ kpi.trend }}</p>
+        </article>
+      }
+    </section>
+
+    <section class="chart-grid">
+      <article class="chart-card">
+        <div class="chart-head">
+          <h2>Priorite des missions</h2>
+          <span>{{ missions.length }} missions</span>
+        </div>
+        <div class="chart-body">
+          <div class="stat-donut" [style.background]="donutGradient(missionPriorityDistribution)">
+            <div class="stat-donut-center">{{ overallMissionSuccessRate }}%</div>
+          </div>
+          <div class="legend-list">
+            @for (slice of missionPriorityDistribution; track slice.label) {
+              <div class="legend-row">
+                <div class="legend-left">
+                  <span class="dot" [style.background]="slice.color"></span>
+                  <span>{{ slice.label }}</span>
+                </div>
+                <strong>{{ slice.percent }}% ({{ slice.count }})</strong>
+              </div>
+            }
+          </div>
+        </div>
+        <p class="chart-hint">Centre: taux de missions terminees sur missions cloturees.</p>
+      </article>
+
+      <article class="chart-card">
+        <div class="chart-head">
+          <h2>Statut des missions</h2>
+          <span>Suivi operationnel</span>
+        </div>
+        <div class="chart-body">
+          <div class="stat-donut" [style.background]="donutGradient(missionStatusDistribution)">
+            <div class="stat-donut-center">{{ missions.length }}</div>
+          </div>
+          <div class="legend-list">
+            @for (slice of missionStatusDistribution; track slice.label) {
+              <div class="legend-row">
+                <div class="legend-left">
+                  <span class="dot" [style.background]="slice.color"></span>
+                  <span>{{ slice.label }}</span>
+                </div>
+                <strong>{{ slice.percent }}% ({{ slice.count }})</strong>
+              </div>
+            }
+          </div>
+        </div>
+      </article>
+
+      <article class="chart-card">
+        <div class="chart-head">
+          <h2>Utilisation du parc</h2>
+          <span>{{ vehicles.length }} vehicules</span>
+        </div>
+        <div class="chart-body">
+          <div class="stat-donut" [style.background]="donutGradient(vehicleUtilizationDistribution)">
+            <div class="stat-donut-center">{{ vehicleUtilizationDistribution[0]?.percent ?? 0 }}%</div>
+          </div>
+          <div class="legend-list">
+            @for (slice of vehicleUtilizationDistribution; track slice.label) {
+              <div class="legend-row">
+                <div class="legend-left">
+                  <span class="dot" [style.background]="slice.color"></span>
+                  <span>{{ slice.label }}</span>
+                </div>
+                <strong>{{ slice.percent }}% ({{ slice.count }})</strong>
+              </div>
+            }
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="insight-grid">
+      <article class="insight-card">
+        <h3>Maintenance a 30 jours</h3>
+        <p class="insight-subtitle">Vision previsionnelle basee sur les statuts actuels.</p>
+
+        <div class="maintenance-list">
+          @for (item of maintenanceOutlook; track item.label) {
+            <div class="maintenance-row">
+              <div>
+                <p class="maintenance-label">{{ item.label }}</p>
+                <p class="maintenance-hint">{{ item.hint }}</p>
+              </div>
+              <span class="maintenance-count" [style.background]="item.color">{{ item.count }}</span>
+            </div>
+          }
+        </div>
+      </article>
+
+      <article class="insight-card">
+        <h3>Performance par employe</h3>
+        <p class="insight-subtitle">Top collaborateurs selon le taux de missions reussies.</p>
+
+        @if (employeeSuccessStats.length === 0) {
+          <p class="empty-state">Aucune mission cloturee pour le moment.</p>
+        }
+
+        <div class="performance-list">
+          @for (stat of employeeSuccessStats; track stat.employeeId) {
+            <div class="performance-row">
+              <div class="performance-head">
+                <p>{{ stat.employeeName }}</p>
+                <strong>{{ stat.successRate }}%</strong>
+              </div>
+              <div class="stat-bar-track">
+                <div class="stat-bar-fill" [style.width]="successBarWidth(stat.successRate)"></div>
+              </div>
+              <p class="performance-meta">{{ stat.completed }} terminees • {{ stat.failed }} echouees • {{ stat.totalClosed }} cloturees</p>
+            </div>
+          }
+        </div>
+      </article>
+    </section>
+  }
+</div>

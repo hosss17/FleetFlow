@@ -1,0 +1,118 @@
+/* Employee Dashboard Elegant Styles */
+
+.employee-hero {
+  background: linear-gradient(90deg, #002D62 0%, #004788 45%, #d85300 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+
+.employee-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 10% 15%, rgba(255, 255, 255, 0.14), transparent 38%);
+  pointer-events: none;
+}
+
+/* Ensure all Font Awesome icons display correctly */
+i,
+i.fas,
+i.far,
+i.fab {
+  display: inline-block !important;
+  font-style: normal;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Shadow effects for glassmorphism */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f4f7fa;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* Improve legibility in the mission request table with warm separators. */
+.mission-history-table thead {
+  background: #fff6e8;
+}
+
+.mission-row td {
+  border-bottom: 1px solid #efdcc0;
+}
+
+.mission-row:hover {
+  background: #fffaf0;
+}
+
+.mission-history-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.mission-id-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.mission-id {
+  min-width: 1.5rem;
+}
+
+.mission-outcome-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.mission-outcome-btn {
+  background: none;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: opacity 160ms ease;
+  cursor: pointer;
+}
+
+.mission-outcome-btn:hover:not(:disabled) {
+  opacity: 0.8;
+}
+
+.mission-outcome-icon {
+  width: 28px;
+  height: 28px;
+  display: inline-block;
+}
+
+.mission-outcome-btn:disabled {
+  opacity: 0.52;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.mission-outcome-btn--done {
+}
+
+.mission-outcome-btn--failed {
+}
+
+.mission-outcome-btn:focus-visible {
+  outline: 3px solid rgba(0, 94, 168, 0.18);
+  outline-offset: 3px;
+}
+
